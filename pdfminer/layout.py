@@ -276,6 +276,7 @@ class LTChar(LTComponent, LTText):
         self.fontname = font.fontname
         self.ncs = ncs
         self.graphicstate = graphicstate
+        self.bold = True if 'bold' in font.basefont.lower() else False
         self.adv = textwidth * fontsize * scaling
         # compute the boundary rectangle.
         if font.is_vertical():
@@ -370,8 +371,21 @@ class LTTextContainer(LTExpandableContainer, LTText):
         return
 
     def get_text(self):
-        return ''.join(obj.get_text() for obj in self
+        bold_chars = 0
+        non_chars = 0
+        for obj in self:
+            if isinstance(obj, LTChar):
+                if obj.bold:
+                    bold_chars += 1
+            elif isinstance(obj, LTText):
+                non_chars += 1
+        text_value = ''.join(obj.get_text() for obj in self
                        if isinstance(obj, LTText))
+        if bold_chars > int(0.7 * (len(text_value) - non_chars)) and text_value.strip() != '':
+            text_value = f'bold{text_value}bold'
+        return text_value
+        # return ''.join(obj.get_text() for obj in self
+        #                if isinstance(obj, LTText))
 
 
 class LTTextLine(LTTextContainer):
